@@ -3,46 +3,263 @@
 <head>
   <meta charset="UTF-8">
   <title>Office Dashboard</title>
-  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #1f2937;
+      margin: 20px;
+    }
+    h1, h2, h3 { text-align: center; }
+
+    /* Login */
+    #loginBox {
+      max-width: 300px;
+      margin: 50px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px #ccc;
+    }
+    #loginBox input, #loginBox button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    #loginBox button {
+      background: #2196F3;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* Dashboard */
+    #dashboard { display: none; }
+
+    /* Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .card {
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+      text-align: center;
+    }
+    .card:nth-child(1) { background: #4CAF50; } /* green */
+    .card:nth-child(2) { background: #2196F3; } /* blue */
+    .card:nth-child(3) { background: #FF9800; } /* orange */
+    .card:nth-child(4) { background: #F44336; } /* red */
+
+    /* Charts */
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    canvas {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th {
+      background: #e5e7eb;
+      text-align: left;
+      padding: 10px;
+    }
+    td {
+      padding: 10px;
+      border-top: 1px solid #eee;
+    }
+
+    /* Inputs */
+    input, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #2196F3;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { opacity: 0.9; }
+  </style>
 </head>
 <body>
 
-  <h1>Office Dashboard</h1>
-
-  <!-- Summary Cards -->
-  <div class="cards">
-    <div class="card">Revenue: $18,500</div>
-    <div class="card">Employees: 12</div>
-    <div class="card">Tasks Done: 320</div>
-    <div class="card">Growth: +12%</div>
+  <!-- LOGIN -->
+  <div id="loginBox">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
   </div>
 
-  <!-- Charts -->
-  <div class="charts">
-    <canvas id="revenueChart"></canvas>
-    <canvas id="salesChart"></canvas>
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+
+    <h1>Office Dashboard</h1>
+
+    <!-- Cards -->
+    <div class="cards">
+      <div class="card">Revenue<br><h2>$18,500</h2></div>
+      <div class="card">Employees<br><h2>12</h2></div>
+      <div class="card">Tasks Done<br><h2>320</h2></div>
+      <div class="card">Growth<br><h2>+12%</h2></div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div class="charts">
+      <canvas id="revenueChart"></canvas>
+      <canvas id="salesChart"></canvas>
+    </div>
+
+    <!-- Editable Revenue Input -->
+    <h3>Add Revenue Data</h3>
+    <input type="text" id="month" placeholder="Month">
+    <input type="number" id="revenue" placeholder="Revenue">
+    <button onclick="addRevenue()">Add</button>
+
+    <!-- Employee Table -->
+    <h3>Employee Tasks</h3>
+    <input type="text" id="empName" placeholder="Name">
+    <input type="text" id="empDept" placeholder="Department">
+    <input type="number" id="empTasks" placeholder="Tasks">
+    <button onclick="addEmployee()">Add</button>
+
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Department</th>
+        <th>Tasks</th>
+      </tr>
+      <tr>
+        <td>John</td><td>Sales</td><td>45</td>
+      </tr>
+      <tr>
+        <td>Sarah</td><td>Marketing</td><td>38</td>
+      </tr>
+    </table>
+
   </div>
 
-  <!-- Table -->
-  <table>
-    <tr>
-      <th>Name</th>
-      <th>Department</th>
-      <th>Tasks</th>
-    </tr>
-    <tr>
-      <td>John</td>
-      <td>Sales</td>
-      <td>45</td>
-    </tr>
-    <tr>
-      <td>Sarah</td>
-      <td>Marketing</td>
-      <td>38</td>
-    </tr>
-  </table>
+  <script>
+    // Admin login setup
+    const ADMIN_USER = "admin";
+    const ADMIN_PASS = "1234";
+    let isAdmin = false;
 
-  <script src="script.js"></script>
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+
+      if(user === ADMIN_USER && pass === ADMIN_PASS) {
+        isAdmin = true;
+        alert("Admin logged in: Full access enabled");
+        enableEditing();
+      } else {
+        alert("Viewer mode: You cannot edit data");
+        disableEditing();
+      }
+    }
+
+    function enableEditing() {
+      document.querySelectorAll("input, button").forEach(el => el.disabled = false);
+    }
+
+    function disableEditing() {
+      document.querySelectorAll("input, button").forEach(el => el.disabled = true);
+    }
+
+    // Charts data
+    let revenueData = [5000, 7000, 6500, 8000];
+    let revenueLabels = ['Jan', 'Feb', 'Mar', 'Apr'];
+
+    const ctxRev = document.getElementById('revenueChart');
+    const revenueChart = new Chart(ctxRev, {
+      type: 'line',
+      data: {
+        labels: revenueLabels,
+        datasets: [{
+          label: 'Revenue',
+          data: revenueData,
+          borderWidth: 2,
+          borderColor: '#4CAF50',
+          backgroundColor: 'rgba(76, 175, 80,0.2)',
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true }
+    });
+
+    const ctxSales = document.getElementById('salesChart');
+    const salesChart = new Chart(ctxSales, {
+      type: 'bar',
+      data: {
+        labels: ['Sales', 'Marketing', 'IT'],
+        datasets: [{
+          label: 'Tasks Completed',
+          data: [120, 90, 60],
+          backgroundColor: ['#2196F3','#FF9800','#F44336']
+        }]
+      },
+      options: { responsive: true }
+    });
+
+    // Editable revenue function
+    function addRevenue() {
+      if(!isAdmin) return alert("View mode only!");
+
+      const month = document.getElementById("month").value;
+      const rev = Number(document.getElementById("revenue").value);
+      if(!month || !rev) return alert("Enter month & revenue");
+
+      revenueLabels.push(month);
+      revenueData.push(rev);
+      revenueChart.update();
+    }
+
+    // Editable employee table
+    function addEmployee() {
+      if(!isAdmin) return alert("View mode only!");
+
+      const name = document.getElementById("empName").value;
+      const dept = document.getElementById("empDept").value;
+      const tasks = document.getElementById("empTasks").value;
+      if(!name || !dept || !tasks) return alert("Fill all fields");
+
+      const table = document.querySelector("table");
+      const row = table.insertRow();
+      row.insertCell(0).innerText = name;
+      row.insertCell(1).innerText = dept;
+      row.insertCell(2).innerText = tasks;
+    }
+
+    // Disable inputs initially
+    window.onload = () => disableEditing();
+  </script>
 </body>
 </html>
